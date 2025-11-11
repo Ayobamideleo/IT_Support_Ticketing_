@@ -1,0 +1,284 @@
+{
+  "info": {
+    "_postman_id": "it-support-rbac-001-clean",
+    "name": "IT Support RBAC Tests (fixed)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Cleaned RBAC collection with prerequest scripts to prevent malformed JSON. Import this file into Postman or replace the broken file."
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "employee_token", "value": "", "type": "string" },
+    { "key": "itstaff_token", "value": "", "type": "string" },
+    { "key": "employee_id", "value": "", "type": "string" },
+    { "key": "itstaff_id", "value": "", "type": "string" },
+    { "key": "ticketId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1 - Register Employee",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Employee User\",\n  \"email\": \"employee@wyze.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\"\n}" },
+        "url": { "raw": "{{base_url}}/auth/register", "host": [ "{{base_url}}/auth/register" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Registered (201 or 400 if already exists)', function () { pm.expect(pm.response.code).to.be.oneOf([201,400]); });", "if (pm.response.code === 201) {", "  var json = pm.response.json();", "  pm.environment.set('employee_token', json.token);", "  pm.environment.set('employee_id', json.user.id);", "}" ] } } ]
+    },
+    {
+      "name": "2 - Register IT Staff",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"IT Staff\",\n  \"email\": \"itstaff@wyze.com\",\n  \"password\": \"password123\",\n  \"role\": \"it_staff\"\n}" },
+        "url": { "raw": "{{base_url}}/auth/register", "host": [ "{{base_url}}/auth/register" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Registered (201 or 400 if already exists)', function () { pm.expect(pm.response.code).to.be.oneOf([201,400]); });", "if (pm.response.code === 201) {", "  var json = pm.response.json();", "  pm.environment.set('itstaff_token', json.token);", "  pm.environment.set('itstaff_id', json.user.id);", "}" ] } } ]
+    },
+    {
+      "name": "3 - Login Employee",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"employee@wyze.com\",\n  \"password\": \"password123\"\n}" },
+        "url": { "raw": "{{base_url}}/auth/login", "host": [ "{{base_url}}/auth/login" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Employee login OK', () => pm.response.to.have.status(200));", "var json = pm.response.json();", "pm.environment.set('employee_token', json.token);", "pm.environment.set('employee_id', json.user.id);" ] } } ]
+    },
+    {
+      "name": "4 - Login IT Staff",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"itstaff@wyze.com\",\n  \"password\": \"password123\"\n}" },
+        "url": { "raw": "{{base_url}}/auth/login", "host": [ "{{base_url}}/auth/login" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('IT staff login OK', () => pm.response.to.have.status(200));", "var json = pm.response.json();", "pm.environment.set('itstaff_token', json.token);", "pm.environment.set('itstaff_id', json.user.id);" ] } } ]
+    },
+    {
+      "name": "5 - Employee Create Ticket",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{employee_token}}" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"RBAC test ticket\",\n  \"description\": \"Ticket created by employee for RBAC testing\"\n}" },
+        "url": { "raw": "{{base_url}}/tickets", "host": [ "{{base_url}}/tickets" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Ticket created (201)', () => pm.response.to.have.status(201));", "var json = pm.response.json();", "pm.environment.set('ticketId', json.ticket.id);" ] } } ]
+    },
+    {
+      "name": "6 - Employee Get My Tickets",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{employee_token}}" } ],
+        "url": { "raw": "{{base_url}}/tickets/my", "host": [ "{{base_url}}/tickets/my" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Employee can get own tickets (200)', () => pm.response.to.have.status(200));", "var arr = pm.response.json();", "pm.test('Response contains created ticket', () => { pm.expect(arr.some(t => t.id === parseInt(pm.environment.get('ticketId')))).to.be.true; });" ] } } ]
+    },
+    {
+      "name": "7 - Employee Get All Tickets (should be denied)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{employee_token}}" } ],
+        "url": { "raw": "{{base_url}}/tickets", "host": [ "{{base_url}}/tickets" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Employee cannot get all tickets (403)', () => pm.response.to.have.status(403));" ] } } ]
+    },
+    {
+      "name": "8 - IT Staff Get All Tickets",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{itstaff_token}}" } ],
+        "url": { "raw": "{{base_url}}/tickets", "host": [ "{{base_url}}/tickets" ] }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('IT staff can get all tickets (200)', () => pm.response.to.have.status(200));" ] } } ]
+    },
+    {
+      "name": "9 - Employee Assign Ticket (should be denied)",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{employee_token}}" } ],
+        "body": { "mode": "raw", "raw": "{{assign_body}}" },
+        "url": { "raw": "{{base_url}}/tickets/{{ticketId}}/assign", "host": [ "{{base_url}}/tickets/{{ticketId}}/assign" ] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// validate required env vars and build a safe JSON body",
+              "if (!pm.environment.get('itstaff_id')) {",
+              "  throw new Error('itstaff_id is not set. Run the Login/Register steps first.');",
+              "}",
+              "if (!pm.environment.get('ticketId')) {",
+              "  throw new Error('ticketId is not set. Run the Create Ticket step first.');",
+              "}",
+              "var assignedTo = parseInt(pm.environment.get('itstaff_id'), 10);",
+              "if (isNaN(assignedTo)) {",
+              "  throw new Error('itstaff_id is not a number');",
+              "}",
+              "pm.environment.set('assign_body', JSON.stringify({ assignedTo: assignedTo }));"
+            ]
+          }
+        },
+        { "listen": "test", "script": { "exec": [ "pm.test('Employee cannot assign (403)', () => pm.response.to.have.status(403));" ] } }
+      ]
+    },
+    {
+      "name": "10 - IT Staff Assign Ticket",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{itstaff_token}}" } ],
+        "body": { "mode": "raw", "raw": "{{assign_body}}" },
+        "url": { "raw": "{{base_url}}/tickets/{{ticketId}}/assign", "host": [ "{{base_url}}/tickets/{{ticketId}}/assign" ] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// validate required env vars and build a safe JSON body",
+              "if (!pm.environment.get('itstaff_id')) {",
+              "  throw new Error('itstaff_id is not set. Run the Login/Register steps first.');",
+              "}",
+              "if (!pm.environment.get('ticketId')) {",
+              "  throw new Error('ticketId is not set. Run the Create Ticket step first.');",
+              "}",
+              "var assignedTo = parseInt(pm.environment.get('itstaff_id'), 10);",
+              "if (isNaN(assignedTo)) {",
+              "  throw new Error('itstaff_id is not a number');",
+              "}",
+              "pm.environment.set('assign_body', JSON.stringify({ assignedTo: assignedTo }));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('IT staff can assign (200)', () => pm.response.to.have.status(200));",
+              "var json = pm.response.json();",
+              "pm.test('assignedTo updated', () => { pm.expect(json.ticket.assignedTo === parseInt(pm.environment.get('itstaff_id')) || (json.ticket.assignee && json.ticket.assignee.id === parseInt(pm.environment.get('itstaff_id')))).to.be.ok; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Employee Update Status (should be denied)",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{employee_token}}" } ],
+        "body": { "mode": "raw", "raw": "{{status_body}}" },
+        "url": { "raw": "{{base_url}}/tickets/{{ticketId}}/status", "host": [ "{{base_url}}/tickets/{{ticketId}}/status" ] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// ensure ticketId is set before sending",
+              "if (!pm.environment.get('ticketId')) {",
+              "  throw new Error('ticketId is not set. Run the Create Ticket step first.');",
+              "}",
+              "// prepare a safe JSON body for status update",
+              "pm.environment.set('status_body', JSON.stringify({ status: 'in_progress' }));"
+            ]
+          }
+        },
+        { "listen": "test", "script": { "exec": [ "pm.test('Employee cannot update status (403)', () => pm.response.to.have.status(403));" ] } }
+      ]
+    },
+    {
+      "name": "12 - IT Staff Update Status",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{itstaff_token}}" } ],
+        "body": { "mode": "raw", "raw": "{{status_body}}" },
+        "url": { "raw": "{{base_url}}/tickets/{{ticketId}}/status", "host": [ "{{base_url}}/tickets/{{ticketId}}/status" ] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// ensure ticketId is set before sending",
+              "if (!pm.environment.get('ticketId')) {",
+              "  throw new Error('ticketId is not set. Run the Create Ticket step first.');",
+              "}",
+              "// prepare a safe JSON body for status update",
+              "pm.environment.set('status_body', JSON.stringify({ status: 'in_progress' }));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('IT staff can update status (200)', () => pm.response.to.have.status(200));",
+              "var json = pm.response.json();",
+              "pm.test('status changed to in_progress', () => { pm.expect(json.ticket.status === 'in_progress').to.be.true; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Employee Update Priority (should be denied)",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{employee_token}}" } ],
+        "body": { "mode": "raw", "raw": "{{priority_body}}" },
+        "url": { "raw": "{{base_url}}/tickets/{{ticketId}}/priority", "host": [ "{{base_url}}/tickets/{{ticketId}}/priority" ] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// ensure ticketId is set before sending",
+              "if (!pm.environment.get('ticketId')) {",
+              "  throw new Error('ticketId is not set. Run the Create Ticket step first.');",
+              "}",
+              "// prepare a safe JSON body for priority update",
+              "pm.environment.set('priority_body', JSON.stringify({ priority: 'high' }));"
+            ]
+          }
+        },
+        { "listen": "test", "script": { "exec": [ "pm.test('Employee cannot update priority (403)', () => pm.response.to.have.status(403));" ] } }
+      ]
+    },
+    {
+      "name": "14 - IT Staff Update Priority",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{itstaff_token}}" } ],
+        "body": { "mode": "raw", "raw": "{{priority_body}}" },
+        "url": { "raw": "{{base_url}}/tickets/{{ticketId}}/priority", "host": [ "{{base_url}}/tickets/{{ticketId}}/priority" ] }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// ensure ticketId is set before sending",
+              "if (!pm.environment.get('ticketId')) {",
+              "  throw new Error('ticketId is not set. Run the Create Ticket step first.');",
+              "}",
+              "// prepare a safe JSON body for priority update",
+              "pm.environment.set('priority_body', JSON.stringify({ priority: 'high' }));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('IT staff can update priority (200)', () => pm.response.to.have.status(200));",
+              "var json = pm.response.json();",
+              "pm.test('priority changed to high', () => { pm.expect(json.ticket.priority === 'high').to.be.true; });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
