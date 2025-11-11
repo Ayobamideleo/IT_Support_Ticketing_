@@ -1,0 +1,59 @@
+name: Postman RBAC tests
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+jobs:
+  newman:
+    name: Run Postman RBAC collection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            backend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies (backend)
+        working-directory: backend
+        run: npm ci
+
+      - name: Run database migrations
+        working-directory: backend
+        run: npm run migrate:umzug
+        env:
+          DB_NAME: ${{ secrets.DB_NAME || 'test_db' }}
+          DB_USER: ${{ secrets.DB_USER || 'root' }}
+          DB_PASS: ${{ secrets.DB_PASS || '' }}
+          DB_HOST: ${{ secrets.DB_HOST || 'localhost' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-secret' }}
+
+      - name: Run Newman RBAC collection
+        working-directory: backend
+        run: npm run test:postman
+
+      - name: Upload Newman JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: backend/newman-report.json

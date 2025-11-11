@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+/* helper classes available below */
+
+:root{
+  /* WYZE palette */
+  --deep-red: #b71c1c; /* primary deep red */
+  --red: #d32f2f; /* accent red */
+  --black: #0b0b0b;
+  --white: #ffffff;
+  --muted: #6b7280; /* neutral gray */
+  --surface: #f8fafc; /* light background */
+}
+
+body{
+  /* Global font set to Georgia site-wide */
+  font-family: Georgia, serif;
+  background-color: var(--surface);
+  color: var(--black);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Text + background helpers */
+.text-primary{ color: var(--deep-red); }
+.bg-primary{ background-color: var(--deep-red); }
+.hover\:text-primary:hover{ color: var(--red); }
+
+/* Primary button gradient */
+.btn-primary{
+  background-image: linear-gradient(90deg, var(--deep-red) 0%, var(--red) 100%);
+  color:var(--white);
+  padding:0.6rem 1rem;
+  border-radius:8px;
+  font-weight:600;
+  border: none;
+  cursor: pointer;
+}
+
+/* Portal hero and layout */
+.portal-hero{
+  background: linear-gradient(90deg, rgba(183,28,28,0.06), rgba(13,18,24,0.02));
+  border-radius: 12px;
+  padding: 2.5rem;
+}
+
+.portal-title{
+  /* Headings also use Georgia for consistency */
+  font-family: Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--deep-red);
+}
+
+.portal-subtitle{
+  color: #374151;
+  margin-top: 0.5rem;
+}
+
+.card{
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.08);
+  padding: 1rem;
+}
+
+.header-brand{ display:flex;align-items:center;gap:.75rem;font-weight:700;color:var(--deep-red) }
+
+.logo-small{ height:36px; width:auto }
+
+.cta-primary{ background-image: linear-gradient(90deg, var(--deep-red) 0%, var(--red) 100%); color:var(--white); padding:.6rem 1rem; border-radius:8px; font-weight:700; border:none; cursor:pointer }
+.cta-ghost{ padding:.55rem 0.9rem; border-radius:8px; background: linear-gradient(90deg, rgba(183,28,28,0.04), rgba(211,47,47,0.02)); border: 1px solid rgba(2,6,23,0.06) }
+
+.muted{ color:var(--muted) }
+
+/* Small interactions */
+.cta-primary, .btn-primary, .cta-ghost { transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease }
+.cta-primary:hover{ transform: translateY(-2px); box-shadow: 0 10px 30px rgba(183,28,28,0.18); opacity:0.98 }
+.btn-primary:hover{ transform: translateY(-2px); box-shadow: 0 10px 30px rgba(183,28,28,0.14); opacity:0.98 }
+.cta-ghost:hover{ transform: translateY(-1px); box-shadow: 0 8px 18px rgba(2,6,23,0.06) }
+
+/* Form fields */
+input, textarea, select{ border:1px solid rgba(2,6,23,0.06); }
+
+/* Utility */
+.rounded-md{ border-radius:8px }
+.text-center{ text-align:center }
+
+/* Ticket badges */
+.badge{ display:inline-block; padding:.25rem .5rem; border-radius:999px; font-size:12px; font-weight:700 }
+.badge-low{ background: linear-gradient(90deg,#16a34a,#22c55e); color:white }
+.badge-medium{ background: linear-gradient(90deg,#f59e0b,#f97316); color:white }
+.badge-high{ background: linear-gradient(90deg,#b91c1c,#ef4444); color:white }
+
+/* Status */
+.status-open{ background:#f3f4f6; color:#374151; padding:.25rem .5rem; border-radius:8px; font-weight:600 }
+.status-in_progress{ background:linear-gradient(90deg,#06b6d4,#0891b2); color:white; padding:.25rem .5rem; border-radius:8px; font-weight:600 }
+.status-resolved{ background:linear-gradient(90deg,#10b981,#059669); color:white; padding:.25rem .5rem; border-radius:8px; font-weight:600 }
+
+/* Ticket list layout */
+.tickets-grid{ display:grid; grid-template-columns: repeat(1, minmax(0,1fr)); gap:1rem }
+@media(min-width:1024px){ .tickets-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+
+.ticket-card{ padding:1rem; border-radius:10px; background:linear-gradient(180deg, rgba(255,255,255,1), rgba(248,250,252,1)); box-shadow: 0 8px 20px rgba(2,6,23,0.06); }
+.ticket-meta{ font-size:12px; color:var(--muted) }
+.ticket-title{ font-weight:700; color:var(--black); }
+.ticket-desc{ color:#374151 }
+
+
