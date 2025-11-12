@@ -1,5 +1,7 @@
 import TicketComment from "../models/TicketComment.js";
 import Ticket from "../models/Ticket.js";
+import User from "../models/User.js";
+import { sendBulkGeneric } from "../services/emailService.js";
 
 export const addComment = async (req, res) => {
   try {
@@ -11,6 +13,31 @@ export const addComment = async (req, res) => {
     if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
 
     const comment = await TicketComment.create({ ticketId: id, userId: req.user.id, body });
+
+    // Notify creator and assignee about the new comment
+    try {
+      const [author, fullTicket] = await Promise.all([
+        User.findByPk(req.user.id, { attributes: ['id','name','email','role'] }),
+        Ticket.findByPk(id, {
+          include: [
+            { association: 'creator', attributes: ['id','name','email','role'] },
+            { association: 'assignee', attributes: ['id','name','email','role'] },
+          ],
+        }),
+      ]);
+      const recipients = [fullTicket?.creator?.email, fullTicket?.assignee?.email].filter(Boolean);
+      const subj = `New comment on Ticket #${fullTicket.id}: ${fullTicket.title}`;
+      const excerpt = body.length > 180 ? body.slice(0, 177) + '...' : body;
+      const msg = [
+        `Author: ${author?.name || 'Someone'}`,
+        `Ticket: ${fullTicket.title}`,
+        `Comment: ${excerpt}`,
+      ].join('\n');
+      await sendBulkGeneric(recipients, subj, msg);
+    } catch (notifyErr) {
+      console.warn('[notify] addComment notification failed:', notifyErr?.message || notifyErr);
+    }
+
     res.status(201).json({ message: 'Comment added', comment });
   } catch (error) {
     console.error('Add comment error:', error);

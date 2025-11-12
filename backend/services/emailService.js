@@ -12,3 +12,13 @@ export async function sendGeneric(to, subject, body) {
   console.log(`[emailService] Would send email to ${to}: ${subject} -> ${body}`);
   return { success: true };
 }
+
+// Send a single message to multiple recipients by fanning out calls to sendGeneric
+export async function sendBulkGeneric(recipients, subject, body) {
+  if (!Array.isArray(recipients) || recipients.length === 0) {
+    return { success: true, skipped: true, reason: 'no recipients' };
+  }
+  const unique = [...new Set(recipients.filter(Boolean))];
+  await Promise.all(unique.map((to) => sendGeneric(to, subject, body)));
+  return { success: true, count: unique.length };
+}

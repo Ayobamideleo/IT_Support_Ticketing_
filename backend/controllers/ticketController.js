@@ -1,6 +1,7 @@
 import Ticket from "../models/Ticket.js";
 import User from "../models/User.js";
 import TicketComment from "../models/TicketComment.js";
+import { sendGeneric, sendBulkGeneric } from "../services/emailService.js";
 import { Op } from "sequelize";
 
 // ✅ CREATE TICKET (Employees, IT Staff, Managers)
@@ -18,6 +19,52 @@ export const createTicket = async (req, res) => {
       dueAt: dueAt ? new Date(dueAt) : null,
       department: department || null,
     });
+
+    // Notify: creator, all IT Staff, and Managers
+    try {
+      const creator = await User.findByPk(req.user.id);
+      const itAndManagers = await User.findAll({
+        where: { role: { [Op.in]: ["it_staff", "manager"] } },
+        attributes: ["email", "name", "role"],
+      });
+
+      const subject = `New Ticket #${ticket.id}: ${ticket.title}`;
+      const baseBody = [
+        `A new ticket has been raised by ${creator?.name || "an employee"} (${creator?.email || "unknown"}).`,
+        `Title: ${ticket.title}`,
+        `Issue Type: ${ticket.issueType || "n/a"}`,
+        `Priority: ${ticket.priority}`,
+        `Department: ${ticket.department || "n/a"}`,
+        `Status: ${ticket.status}`,
+      ].join("\n");
+
+      // Send to creator
+      if (creator?.email) {
+        await sendGeneric(
+          creator.email,
+          `Your ticket #${ticket.id} has been created`,
+          [
+            `Hi ${creator.name},`,
+            `Your ticket has been created successfully and our IT Staff will review it shortly.`,
+            `\n${baseBody}`,
+          ].join("\n")
+        );
+      }
+
+      // Send to IT Staff and Managers (broadcast)
+      const broadcastRecipients = itAndManagers.map((u) => u.email).filter(Boolean);
+      await sendBulkGeneric(
+        broadcastRecipients,
+        subject,
+        [
+          `Hello IT Staff/Managers,`,
+          baseBody,
+          `\nPlease take appropriate action.`,
+        ].join("\n")
+      );
+    } catch (notifyErr) {
+      console.warn('[notify] createTicket notification failed:', notifyErr?.message || notifyErr);
+    }
 
     res.status(201).json({ message: "Ticket created successfully", ticket });
   } catch (error) {
@@ -117,6 +164,26 @@ export const updateTicketStatus = async (req, res) => {
     }
     await ticket.save();
 
+    // Notify creator and assignee
+    try {
+      const updated = await Ticket.findByPk(id, {
+        include: [
+          { model: User, as: "creator", attributes: ["id", "name", "email", "role"] },
+          { model: User, as: "assignee", attributes: ["id", "name", "email", "role"] },
+        ],
+      });
+      const recipients = [updated?.creator?.email, updated?.assignee?.email].filter(Boolean);
+      const subj = `Ticket #${updated.id} status changed to ${updated.status}`;
+      const body = [
+        `Ticket: ${updated.title}`,
+        `New Status: ${updated.status}`,
+        updated.dueAt ? `Due: ${new Date(updated.dueAt).toLocaleString()}` : null,
+      ].filter(Boolean).join("\n");
+      await sendBulkGeneric(recipients, subj, body);
+    } catch (notifyErr) {
+      console.warn('[notify] updateTicketStatus notification failed:', notifyErr?.message || notifyErr);
+    }
+
     res.status(200).json({ message: "Ticket status updated", ticket });
   } catch (error) {
     console.error('Update ticket status error:', error);
@@ -143,6 +210,22 @@ export const updateTicketPriority = async (req, res) => {
 
     ticket.priority = priority;
     await ticket.save();
+
+    // Notify creator and assignee
+    try {
+      const updated = await Ticket.findByPk(id, {
+        include: [
+          { model: User, as: "creator", attributes: ["id", "name", "email", "role"] },
+          { model: User, as: "assignee", attributes: ["id", "name", "email", "role"] },
+        ],
+      });
+      const recipients = [updated?.creator?.email, updated?.assignee?.email].filter(Boolean);
+      const subj = `Ticket #${updated.id} priority updated to ${updated.priority}`;
+      const body = [`Ticket: ${updated.title}`, `New Priority: ${updated.priority}`].join("\n");
+      await sendBulkGeneric(recipients, subj, body);
+    } catch (notifyErr) {
+      console.warn('[notify] updateTicketPriority notification failed:', notifyErr?.message || notifyErr);
+    }
 
     res.status(200).json({ message: "Ticket priority updated", ticket });
   } catch (error) {
@@ -188,6 +271,20 @@ export const assignTicket = async (req, res) => {
         { model: User, as: "assignee", attributes: ["id", "name", "email", "role"] },
       ],
     });
+
+    // Notify creator and new assignee
+    try {
+      const recipients = [updatedTicket?.creator?.email, updatedTicket?.assignee?.email].filter(Boolean);
+      const subj = `Ticket #${updatedTicket.id} assigned to ${updatedTicket?.assignee?.name || 'IT Staff'}`;
+      const body = [
+        `Ticket: ${updatedTicket.title}`,
+        `Assigned To: ${updatedTicket?.assignee?.name || 'IT Staff'}`,
+        `Status: ${updatedTicket.status}`,
+      ].join("\n");
+      await sendBulkGeneric(recipients, subj, body);
+    } catch (notifyErr) {
+      console.warn('[notify] assignTicket notification failed:', notifyErr?.message || notifyErr);
+    }
 
     res.status(200).json({ message: "Ticket assigned successfully", ticket: updatedTicket });
   } catch (error) {
