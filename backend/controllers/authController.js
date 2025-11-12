@@ -7,6 +7,10 @@ import { sendVerificationEmail } from '../services/emailService.js';
 
 dotenv.config();
 
+// Use a safe default JWT secret for development if none is provided.
+// In production, always set JWT_SECRET via environment variables.
+const JWT_SECRET = process.env.JWT_SECRET || 'DEV_ONLY_SECRET_change_me';
+
 // Simple in-memory rate limiter for resend verification to prevent abuse per email
 // Cooldown: 60s between sends; Max 5 sends per rolling hour
 const resendTracker = new Map(); // email -> { lastSentAt: number, windowStart: number, count: number }
@@ -47,7 +51,7 @@ export const registerUser = async (req, res) => {
 
     // sign a JWT for convenience but mark as unverified
     const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 
     // Return token but indicate verification required. Include code in response only in non-production for testing.
     const response = { message: "User registered. Verification code sent.", user: payload, token };
@@ -170,7 +174,7 @@ export const loginUser = async (req, res) => {
     await user.save();
 
     const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 
     res.status(200).json({ message: "Login successful", user: payload, token });
   } catch (error) {

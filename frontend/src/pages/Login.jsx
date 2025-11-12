@@ -14,7 +14,11 @@ export default function Login() {
     try {
       await login(email, password)
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed')
+      // Show more helpful errors: API-provided message, else network error, else fallback
+      const msg = err?.response?.data?.message || err?.message || 'Login failed'
+      setError(msg)
+      // eslint-disable-next-line no-console
+      console.error('Login error:', err)
     }
   }
 
