@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from '../api/axios';
 import { DEPARTMENTS } from '../constants/departments';
 import { useAuth } from '../context/AuthContext';
+import BackButton from '../components/BackButton';
 
 export default function ITUserAccounts() {
   const { user } = useAuth();
@@ -93,6 +94,7 @@ export default function ITUserAccounts() {
     <div>
       <div className="mb-6 flex justify-between items-center">
         <div>
+          <div className="mb-2"><BackButton fallback="/it" /></div>
           <h1 className="text-2xl font-bold">User Accounts</h1>
           <p className="text-gray-600">View and manage employee accounts</p>
         </div>

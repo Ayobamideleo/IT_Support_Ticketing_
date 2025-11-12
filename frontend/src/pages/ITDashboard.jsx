@@ -6,6 +6,7 @@ import StatusBadge from '../components/StatusBadge'
 import PriorityBadge from '../components/PriorityBadge'
 import SLAIndicator from '../components/SLAIndicator'
 import FilterBar from '../components/FilterBar'
+import BackButton from '../components/BackButton'
 
 export default function ITDashboard() {
   const { user, logout } = useAuth()
@@ -193,6 +194,7 @@ export default function ITDashboard() {
           <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 border border-red-500/20 shadow-2xl">
             <div className="flex justify-between items-center">
               <div>
+                <div className="mb-2"><BackButton fallback="/welcome" /></div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-red-500 via-red-400 to-gray-300 bg-clip-text text-transparent mb-2">IT Staff Dashboard</h1>
                 <p className="text-gray-400">Welcome {user?.name}. Assign and manage tickets below.</p>
               </div>

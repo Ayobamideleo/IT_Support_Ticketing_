@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from '../api/axios'
 import { useNavigate, useLocation } from 'react-router-dom'
+import BackButton from '../components/BackButton'
 
 export default function VerifyEmail() {
   const [code, setCode] = useState('')
@@ -56,6 +57,9 @@ export default function VerifyEmail() {
 
   return (
     <div className="max-w-md mx-auto card">
+      <div className="mb-2">
+        <BackButton fallback="/login" />
+      </div>
       <h2 className="text-xl font-bold mb-3">Verify your email</h2>
       <p className="text-sm muted mb-4">
         We've sent a 6-digit verification code to <strong>{email}</strong>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from '../api/axios'
+import BackButton from '../components/BackButton'
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1) // 1: email, 2: code + new password
@@ -83,6 +84,9 @@ export default function ForgotPassword() {
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-gray-700/30 to-gray-900/30 rounded-full blur-3xl opacity-50 animate-pulse" style={{ animationDelay: '1s' }}></div>
       
       <div className="max-w-md w-full relative">
+        <div className="absolute -top-10 left-0">
+          <BackButton fallback="/login" />
+        </div>
         {/* Card */}
         <div className="bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-red-500/30">
           {/* Logo/Icon */}
