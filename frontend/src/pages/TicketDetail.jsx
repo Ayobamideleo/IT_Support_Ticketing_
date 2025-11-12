@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import BackButton from '../components/BackButton'
 
 export default function TicketDetail() {
   const { id } = useParams()
@@ -101,9 +102,9 @@ export default function TicketDetail() {
     return (
       <div className="card text-center py-8">
         <div className="text-lg muted mb-4">Ticket not found</div>
-        <button onClick={() => navigate(-1)} className="cta-primary">
-          Go Back
-        </button>
+        <div className="flex justify-center">
+          <BackButton fallback="/welcome" />
+        </div>
       </div>
     )
   }
@@ -112,9 +113,7 @@ export default function TicketDetail() {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-4">
-        <button onClick={() => navigate(-1)} className="text-sm muted hover:text-primary mb-2">
-          ← Back
-        </button>
+        <BackButton fallback="/welcome" className="mb-2" />
         <h1 className="text-3xl font-bold mb-2">{ticket.title}</h1>
         <div className="flex items-center gap-3 text-sm muted">
           <span>Ticket #{ticket.id}</span>
