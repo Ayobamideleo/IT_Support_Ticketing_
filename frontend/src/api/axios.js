@@ -1,6 +1,13 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api'
+// Build a sensible default API base URL that works on LAN:
+// - If running on localhost, default to localhost:5000
+// - If accessed via a LAN IP/hostname, default to that host on port 5000
+const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+const inferredBase = (host === 'localhost' || host === '127.0.0.1')
+  ? 'http://localhost:5000/api'
+  : `http://${host}:5000/api`
+const API_BASE = import.meta.env.VITE_API_BASE || inferredBase
 
 const instance = axios.create({
   baseURL: API_BASE,
