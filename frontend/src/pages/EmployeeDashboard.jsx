@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from '../api/axios'
 import { useAuth } from '../context/AuthContext'
-import BackButton from '../components/BackButton'
 
 function formatDate(d){
   if(!d) return ''
@@ -160,7 +159,6 @@ export default function EmployeeDashboard(){
         <div className="mb-8 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 via-transparent to-red-600/20 blur-3xl"></div>
           <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 border border-red-500/20 shadow-2xl">
-            <div className="mb-2"><BackButton fallback="/welcome" /></div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-red-500 via-red-400 to-gray-300 bg-clip-text text-transparent mb-2">Employee Dashboard</h1>
             <p className="text-gray-400">Welcome {user?.name}! Submit and track your support requests.</p>
           </div>

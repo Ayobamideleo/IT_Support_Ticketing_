@@ -43,6 +43,31 @@ Visit http://localhost:5173
 
 ---
 
+## 🌐 Free Hosting Deployment
+
+Deploying on free tiers keeps the stack accessible for demos while avoiding manual server babysitting. The workflow below uses **Vercel** for the frontend and **Render** (or **Railway**) for the Node.js API.
+
+### Frontend → Vercel
+- Push this repo to GitHub (or fork) so Vercel can import it.
+- In Vercel, create a new project → import the `frontend` folder; set the build command to `npm run build` and output directory to `dist`.
+- Add an environment variable: `VITE_API_BASE` → `https://<your-backend-host>/api`.
+- Trigger the first deploy. Vercel auto-builds on every push to the selected branch.
+
+### Backend → Render / Railway
+- Provision a MySQL instance (Render, Railway, Neon + Prisma adapter, or PlanetScale). Capture `DB_HOST`, `DB_USER`, `DB_PASS`, and `DB_NAME`.
+- Create a new Node.js web service and point it at the `backend` folder. Use `npm install` for install and `npm run start` (or `node server.js`) for the start command. Render/Railway set `PORT` automatically—do **not** hardcode it.
+- Configure environment variables:
+  - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`
+  - `JWT_SECRET` (generate a strong value)
+  - Optional: `NODE_ENV=production`
+- Run the migrations once (`npm run migrate:umzug`) by triggering a shell/one-off job in the hosting dashboard.
+- Enable health checks against `/api/health` to auto-restart on failures.
+
+### Connect the Frontend
+- Update `VITE_API_BASE` in Vercel whenever the backend URL changes.
+- Redeploy the frontend to pick up the new environment variable (Vercel exposes it at build time).
+- Verify the public site: login/registration should hit the hosted API without CORS errors.
+
 ---
 
 ## 📚 Documentation

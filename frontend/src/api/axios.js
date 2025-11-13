@@ -1,13 +1,8 @@
 import axios from 'axios'
 
-// Build a sensible default API base URL that works on LAN:
-// - If running on localhost, default to localhost:5000
-// - If accessed via a LAN IP/hostname, default to that host on port 5000
-const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
-const inferredBase = (host === 'localhost' || host === '127.0.0.1')
-  ? 'http://localhost:5000/api'
-  : `http://${host}:5000/api`
-const API_BASE = import.meta.env.VITE_API_BASE || inferredBase
+const API_BASE = (import.meta.env.VITE_API_BASE && import.meta.env.VITE_API_BASE.trim())
+  ? import.meta.env.VITE_API_BASE.trim()
+  : 'http://localhost:5000/api'
 
 const instance = axios.create({
   baseURL: API_BASE,
@@ -34,12 +29,14 @@ instance.interceptors.response.use(
   (res) => res,
   (error) => {
     const status = error?.response?.status
-    if (status === 401) {
+    const code = error?.response?.data?.message || ''
+    const tokenInvalid = typeof code === 'string' && code.toLowerCase().includes('invalid token')
+
+    if (status === 401 || (status === 403 && tokenInvalid)) {
       try {
         localStorage.removeItem('token')
         localStorage.removeItem('user')
       } catch {}
-      // Hard redirect to login; preserve path for after login if needed
       if (typeof window !== 'undefined') window.location.href = '/login'
     }
     return Promise.reject(error)
