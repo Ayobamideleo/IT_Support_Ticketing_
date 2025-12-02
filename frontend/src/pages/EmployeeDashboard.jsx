@@ -16,6 +16,7 @@ export default function EmployeeDashboard(){
   const [error, setError] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
+  const [statusFilter, setStatusFilter] = useState('all')
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -85,6 +86,17 @@ export default function EmployeeDashboard(){
     if(s==='resolved') return <span className="status-resolved">Resolved</span>
     return <span className="status-open">{s}</span>
   }
+
+  const filteredTickets = tickets.filter((t) => {
+    if (statusFilter === 'all') return true
+    if (statusFilter === 'open') {
+      return ['open', 'assigned', 'in_progress'].includes(t.status)
+    }
+    if (statusFilter === 'closed') {
+      return ['resolved', 'closed'].includes(t.status)
+    }
+    return true
+  })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
@@ -206,14 +218,38 @@ export default function EmployeeDashboard(){
         </div>
 
         <div className="col-span-2">
-          <div className="mb-6 flex items-center justify-between bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-red-500/20">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-red-500/20">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-red-500 to-red-400 bg-clip-text text-transparent">My tickets</h3>
-            <div className="text-gray-400 text-sm">{loading ? 'Refreshing...' : `${tickets.length} tickets`}</div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="inline-flex rounded-xl bg-gray-900/60 border border-red-500/20 shadow-inner">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'open', label: 'Open' },
+                  { id: 'closed', label: 'Closed' },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setStatusFilter(option.id)}
+                    className={`px-3 py-2 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                      statusFilter === option.id
+                        ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-500/30'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <div className="text-gray-400 text-sm whitespace-nowrap">
+                {loading ? 'Refreshing...' : `${filteredTickets.length} of ${tickets.length}`}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-4">
-            {tickets.length===0 && !loading && <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 text-center text-gray-400 border border-red-500/20">You have no tickets yet. Create one on the left.</div>}
-            {tickets.map(t => (
+            {filteredTickets.length===0 && !loading && <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 text-center text-gray-400 border border-red-500/20">{tickets.length ? 'No tickets match this filter.' : 'You have no tickets yet. Create one on the left.'}</div>}
+            {filteredTickets.map(t => (
               <div key={t.id} className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:shadow-red-500/10 transition-all duration-300 border border-red-500/20 hover:border-red-500/40">
                 <div className="flex items-start justify-between gap-4">
                   <div style={{flex:1}}>

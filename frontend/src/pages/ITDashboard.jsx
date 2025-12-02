@@ -197,7 +197,7 @@ export default function ITDashboard() {
                 <p className="text-gray-400">Welcome {user?.name}. Assign and manage tickets below.</p>
               </div>
               <button 
-                onClick={() => fetchTickets(page, filters)}
+                onClick={fetchTickets}
                 className="px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-xl hover:from-gray-600 hover:to-gray-700 flex items-center gap-2 shadow-lg border border-gray-600/30 transition-all duration-300 hover:scale-105"
                 title="Refresh tickets"
               >
@@ -300,7 +300,8 @@ export default function ITDashboard() {
                             className="px-2 py-1 bg-gray-800 border border-red-500/30 rounded-lg text-xs text-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                           >
                             <option value="open">Open</option>
-                            <option value="in-progress">In Progress</option>
+                            <option value="assigned">Assigned</option>
+                            <option value="in_progress">In Progress</option>
                             <option value="resolved">Resolved</option>
                             <option value="closed">Closed</option>
                           </select>
@@ -312,7 +313,6 @@ export default function ITDashboard() {
                             <option value="low">Low</option>
                             <option value="medium">Medium</option>
                             <option value="high">High</option>
-                            <option value="critical">Critical</option>
                           </select>
                         </div>
                       </td>

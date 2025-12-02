@@ -11,6 +11,7 @@ const User = sequelize.define("User", {
   isVerified: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   verificationCode: { type: DataTypes.STRING, allowNull: true },
   verificationExpires: { type: DataTypes.DATE, allowNull: true },
+  mustChangePassword: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
   // user management extensions
   department: { type: DataTypes.STRING, allowNull: true },
   lastLoginAt: { type: DataTypes.DATE, allowNull: true },

@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [react()],
   // Expose dev server on LAN by default and use a stable port
   server: {
-    host: true, // 0.0.0.0
-    port: 5174,
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: true,
   },
 })

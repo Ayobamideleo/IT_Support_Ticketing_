@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import dotenv from "dotenv";
 import crypto from 'crypto';
-import { sendVerificationEmail } from '../services/emailService.js';
+import { sendVerificationEmail, sendAccountCreatedEmail } from '../services/emailService.js';
 
 dotenv.config();
 
@@ -17,7 +17,7 @@ const resendTracker = new Map(); // email -> { lastSentAt: number, windowStart: 
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, department } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email and password are required" });
@@ -33,7 +33,14 @@ export const registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(password, salt);
 
-    const user = await User.create({ name, email, password: hashed, role });
+    // Public signup is limited to employee accounts to prevent privilege escalation.
+    const user = await User.create({
+      name,
+      email,
+      password: hashed,
+      role: 'employee',
+      department: department || null,
+    });
 
     // create verification code and expiration
     const code = String(crypto.randomInt(100000, 999999));
@@ -49,12 +56,25 @@ export const registerUser = async (req, res) => {
       console.warn('sendVerificationEmail failed:', e?.message || e);
     }
 
-    // sign a JWT for convenience but mark as unverified
-    const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+    try {
+      await sendAccountCreatedEmail(email, name);
+    } catch (e) {
+      console.warn('sendAccountCreatedEmail failed:', e?.message || e);
+    }
 
-    // Return token but indicate verification required. Include code in response only in non-production for testing.
-    const response = { message: "User registered. Verification code sent.", user: payload, token };
+    // Include core profile fields but do not issue a JWT until verification succeeds.
+    const response = {
+      message: "User registered. Verification code sent.",
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        department: user.department,
+        mustChangePassword: user.mustChangePassword,
+      },
+      mustChangePassword: user.mustChangePassword,
+    };
     if (process.env.NODE_ENV !== 'production') response.verificationCode = code;
     res.status(201).json(response);
   } catch (error) {
@@ -174,9 +194,17 @@ export const loginUser = async (req, res) => {
     await user.save();
 
     const payload = { id: user.id, email: user.email, role: user.role, name: user.name };
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
 
-    res.status(200).json({ message: "Login successful", user: payload, token });
+    const responseUser = { ...payload, mustChangePassword: user.mustChangePassword };
+    const response = {
+      message: user.mustChangePassword ? 'Password change required' : 'Login successful',
+      user: responseUser,
+      token,
+      mustChangePassword: user.mustChangePassword,
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     console.error("Login error:", error);
     if (process.env.NODE_ENV === 'production') {
@@ -281,6 +309,7 @@ export const resetPassword = async (req, res) => {
     user.password = hashed;
     user.verificationCode = null;
     user.verificationExpires = null;
+    user.mustChangePassword = false;
     await user.save();
 
     console.log(`✅ Password reset successful for ${email}`);

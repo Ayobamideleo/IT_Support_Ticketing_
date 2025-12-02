@@ -1,6 +1,15 @@
 import React from 'react';
 import { DEPARTMENT_FILTERS } from '../constants/departments';
 
+const STATUS_OPTIONS = [
+  { value: '', label: 'All Statuses' },
+  { value: 'open', label: 'Open' },
+  { value: 'assigned', label: 'Assigned' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'closed', label: 'Closed' }
+];
+
 const FilterBar = ({ filters, onFilterChange, onSearch }) => {
   return (
     <div className="bg-white p-4 rounded-lg shadow mb-4">
@@ -22,11 +31,11 @@ const FilterBar = ({ filters, onFilterChange, onSearch }) => {
             onChange={(e) => onFilterChange('status', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">All Statuses</option>
-            <option value="open">Open</option>
-            <option value="in-progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
+            {STATUS_OPTIONS.map((option) => (
+              <option key={option.value || 'all-statuses'} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
         <div>

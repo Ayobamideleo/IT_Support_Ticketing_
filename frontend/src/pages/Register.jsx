@@ -9,7 +9,6 @@ export default function Register(){
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [department, setDepartment] = useState('')
-  const [role, setRole] = useState('employee')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const navigate = useNavigate()
@@ -19,7 +18,7 @@ export default function Register(){
     setError('')
     setSuccess('')
     try {
-      const res = await axios.post('/auth/register', { name, email, password, role, department })
+      const res = await axios.post('/auth/register', { name, email, password, department })
       setSuccess('Registration successful. Please verify your email.')
       const verificationCode = res.data.verificationCode
       setTimeout(() => {
@@ -139,28 +138,6 @@ export default function Register(){
                 {DEPARTMENTS.map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
-            
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <select 
-                className="w-full pl-12 pr-4 py-3 bg-gray-900 border border-red-500/30 text-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all appearance-none cursor-pointer" 
-                value={role} 
-                onChange={e=>setRole(e.target.value)}
-              >
-                <option value="employee">Employee</option>
-                <option value="it_staff">IT Staff</option>
-                <option value="manager">Manager</option>
               </select>
               <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                 <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

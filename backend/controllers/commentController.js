@@ -1,7 +1,7 @@
 import TicketComment from "../models/TicketComment.js";
 import Ticket from "../models/Ticket.js";
 import User from "../models/User.js";
-import { sendBulkGeneric } from "../services/emailService.js";
+import { sendBulkGeneric, composeEmailHtml } from "../services/emailService.js";
 
 export const addComment = async (req, res) => {
   try {
@@ -11,6 +11,10 @@ export const addComment = async (req, res) => {
 
     const ticket = await Ticket.findByPk(id);
     if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+
+    if (req.user?.role === 'employee' && ticket.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied for this ticket' });
+    }
 
     const comment = await TicketComment.create({ ticketId: id, userId: req.user.id, body });
 
@@ -28,12 +32,29 @@ export const addComment = async (req, res) => {
       const recipients = [fullTicket?.creator?.email, fullTicket?.assignee?.email].filter(Boolean);
       const subj = `New comment on Ticket #${fullTicket.id}: ${fullTicket.title}`;
       const excerpt = body.length > 180 ? body.slice(0, 177) + '...' : body;
-      const msg = [
-        `Author: ${author?.name || 'Someone'}`,
-        `Ticket: ${fullTicket.title}`,
-        `Comment: ${excerpt}`,
-      ].join('\n');
-      await sendBulkGeneric(recipients, subj, msg);
+      const detailRows = [
+        ['Ticket', `#${fullTicket.id} — ${fullTicket.title}`],
+        ['Author', author?.name || 'Someone'],
+        ['Comment', excerpt],
+      ];
+      const textLines = [
+        'Hello,',
+        `A new comment was added to ticket #${fullTicket.id}.`,
+        '',
+        ...detailRows.map(([label, value]) => `${label}: ${value}`),
+        '',
+        'Reply from the WYZE IT Support dashboard to keep the conversation going.',
+      ];
+      const html = composeEmailHtml({
+        title: `New Comment on Ticket #${fullTicket.id}`,
+        intro: [
+          'Hello,',
+          `A new comment was added to ticket #${fullTicket.id}.`,
+        ],
+        details: detailRows,
+        outro: ['Reply from the WYZE IT Support dashboard to keep the conversation going.'],
+      });
+      await sendBulkGeneric(recipients, subj, { text: textLines.join('\n'), html });
     } catch (notifyErr) {
       console.warn('[notify] addComment notification failed:', notifyErr?.message || notifyErr);
     }
@@ -49,6 +70,12 @@ export const addComment = async (req, res) => {
 export const getComments = async (req, res) => {
   try {
     const { id } = req.params; // ticket id
+    const ticket = await Ticket.findByPk(id);
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+    if (req.user?.role === 'employee' && ticket.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied for this ticket' });
+    }
+
     const comments = await TicketComment.findAll({ where: { ticketId: id }, include: ['author'], order:[['createdAt','ASC']] });
     res.status(200).json(comments);
   } catch (error) {

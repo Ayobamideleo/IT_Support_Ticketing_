@@ -9,6 +9,17 @@ const TicketComment = sequelize.define("TicketComment", {
   body: { type: DataTypes.TEXT, allowNull: false },
 });
 
-TicketComment.belongsTo(User, { foreignKey: "userId", as: "author" });
+User.hasMany(TicketComment, {
+  foreignKey: { name: "userId", allowNull: false },
+  as: "comments",
+  onDelete: "CASCADE",
+  hooks: true,
+});
+
+TicketComment.belongsTo(User, {
+  foreignKey: { name: "userId", allowNull: false },
+  as: "author",
+  onDelete: "CASCADE",
+});
 
 export default TicketComment;

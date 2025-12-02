@@ -1,0 +1,4 @@
+- [ ] Revert axios base URL auto-detection logic
+- [ ] Provide Vercel deployment plan for frontend
+- [ ] Recommend free backend hosting options with steps
+- [ ] Summarize next steps for the user

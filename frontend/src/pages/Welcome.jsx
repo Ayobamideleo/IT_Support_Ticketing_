@@ -13,11 +13,16 @@ export default function Welcome(){
           <div className="flex flex-col lg:flex-row items-center lg:items-start justify-between gap-12">
             {/* Left Content */}
             <div className="flex-1 text-center lg:text-left">
-              {/* Logo/Icon */}
+              {/* Customer service icon */}
               <div className="flex justify-center lg:justify-start mb-8">
                 <div className="p-6 bg-gradient-to-br from-red-600 via-red-700 to-gray-900 rounded-3xl shadow-2xl shadow-red-500/20 border border-red-500/30 transform hover:scale-105 transition-all duration-300">
-                  <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Customer service icon">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4a7 7 0 00-6.96 6.18 2.4 2.4 0 00-1.29 2.13V14a2 2 0 002 2h1.5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4a7 7 0 016.96 6.18 2.4 2.4 0 011.29 2.13V14a2 2 0 01-2 2h-1.5" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13.5a3 3 0 006 0" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 10.5h.008v.008H9.75zM14.25 10.5h.008v.008h-.008z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16v1.5a3.5 3.5 0 003.5 3.5h1A3.5 3.5 0 0016 17.5V16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.5 6.5l1.5-1.5M6.5 6.5L5 5" />
                   </svg>
                 </div>
               </div>

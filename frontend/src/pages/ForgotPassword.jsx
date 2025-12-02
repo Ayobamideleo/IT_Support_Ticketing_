@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from '../api/axios'
 import BackButton from '../components/BackButton'
 
@@ -13,6 +13,13 @@ export default function ForgotPassword() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.state?.email) {
+      setEmail(location.state.email)
+    }
+  }, [location.state])
 
   const handleRequestCode = async (e) => {
     e.preventDefault()

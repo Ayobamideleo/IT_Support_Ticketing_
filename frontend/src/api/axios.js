@@ -29,10 +29,14 @@ instance.interceptors.response.use(
   (res) => res,
   (error) => {
     const status = error?.response?.status
-    const code = error?.response?.data?.message || ''
-    const tokenInvalid = typeof code === 'string' && code.toLowerCase().includes('invalid token')
+    const msgRaw = (error?.response?.data?.message || error?.response?.data?.error || error?.message || '').toString()
+    const msg = msgRaw.toLowerCase()
 
-    if (status === 401 || (status === 403 && tokenInvalid)) {
+    // Consider common JWT failure messages across environments
+    const isInvalid = msg.includes('invalid token') || msg.includes('jwt malformed') || msg.includes('signature')
+    const isExpired = msg.includes('expired') || msg.includes('jwt expired') || msg.includes('token expired')
+
+    if (status === 401 || (status === 403 && (isInvalid || isExpired))) {
       try {
         localStorage.removeItem('token')
         localStorage.removeItem('user')

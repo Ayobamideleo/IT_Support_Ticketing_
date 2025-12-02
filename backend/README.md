@@ -331,7 +331,12 @@ See `VERIFICATION.md` for complete documentation.
 3. `POST /auth/login` → Requires `isVerified = true`
 
 **Production Setup:**
-Integrate email provider (SendGrid, Postmark, AWS SES) in `authController.js` to send codes via email.
+- Configure SMTP credentials in `.env` (see `.env.example`):
+   - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`
+   - `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`
+- Install dependencies (already included): `npm install`
+- Restart the backend so the Nodemailer transporter picks up the new env vars.
+- The app now sends real emails for verification and ticket events; missing config falls back to console logging for local smoke tests.
 
 ---
 

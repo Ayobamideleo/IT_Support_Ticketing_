@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import { Op } from 'sequelize';
 import sequelize from '../config/db.js';
+import { sendAccountProvisionedEmail, sendVerificationEmail } from '../services/emailService.js';
 
 // List all users with pagination and filters
 export const listUsers = async (req, res) => {
@@ -90,8 +91,10 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
+    const plainPassword = password;
+
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     // Create user
     const newUser = await User.create({
@@ -100,9 +103,23 @@ export const createUser = async (req, res) => {
       password: hashedPassword,
       role: role || 'employee',
       department: department || null,
-      isVerified: false, // Admin-created users still need verification
+      isVerified: true,
+      mustChangePassword: true,
+      verificationCode: null,
+      verificationExpires: null,
       createdBy: req.user.id
     });
+
+    try {
+      await sendAccountProvisionedEmail({
+        to: email,
+        name,
+        temporaryPassword: plainPassword,
+        role: role || 'employee'
+      });
+    } catch (err) {
+      console.warn('sendAccountProvisionedEmail failed:', err?.message || err);
+    }
 
     const userResponse = newUser.toJSON();
     delete userResponse.password;
@@ -245,8 +262,11 @@ export const resendUserVerification = async (req, res) => {
     user.verificationExpires = verificationExpires;
     await user.save();
 
-    // TODO: Send verification email
-    console.log(`Verification code for ${user.email}: ${verificationCode}`);
+    try {
+      await sendVerificationEmail(user.email, verificationCode, verificationExpires);
+    } catch (err) {
+      console.warn('sendVerificationEmail (resend) failed:', err?.message || err);
+    }
 
     res.json({ message: 'Verification email sent successfully' });
   } catch (error) {

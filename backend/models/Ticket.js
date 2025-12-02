@@ -32,10 +32,23 @@ const Ticket = sequelize.define("Ticket", {
 });
 
 // Relationships
-User.hasMany(Ticket, { foreignKey: "userId", as: "createdTickets" }); // creator
-Ticket.belongsTo(User, { foreignKey: "userId", as: "creator" }); // employee who raised it
+User.hasMany(Ticket, {
+  foreignKey: { name: "userId", allowNull: true },
+  as: "createdTickets",
+  onDelete: "SET NULL",
+  hooks: true,
+});
+Ticket.belongsTo(User, {
+  foreignKey: { name: "userId", allowNull: true },
+  as: "creator",
+  onDelete: "SET NULL",
+});
 
-Ticket.belongsTo(User, { foreignKey: "assignedTo", as: "assignee" }); // IT staff or manager assigned to handle it
+Ticket.belongsTo(User, {
+  foreignKey: { name: "assignedTo", allowNull: true },
+  as: "assignee",
+  onDelete: "SET NULL",
+}); // IT staff or manager assigned to handle it
 
 // Comments
 Ticket.hasMany(TicketComment, { foreignKey: "ticketId", as: "comments" });
