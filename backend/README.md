@@ -65,10 +65,16 @@ Copy `.env.example` → `.env` and configure:
 
 ```env
 # Database (MySQL)
+# Preferred (PaaS): single connection string
+# DATABASE_URL=mysql://user:pass@host:3306/dbname
+
+# Or use individual vars
 DB_NAME=support_system
 DB_USER=root
 DB_PASS=your_password
 DB_HOST=localhost
+# Optional: DB_PORT=3306
+# Optional: DB_SSL=true
 
 # JWT Secret (use a strong random string)
 JWT_SECRET=your-super-secret-jwt-key-change-this
@@ -77,6 +83,8 @@ JWT_SECRET=your-super-secret-jwt-key-change-this
 PORT=5000
 NODE_ENV=development
 ```
+
+**Production note:** Many managed MySQL providers block remote `root` access. Create a dedicated DB user and set `DB_USER` accordingly (or use `DATABASE_URL`).
 
 **Note:** `.env` is gitignored. Never commit credentials.
 
