@@ -2,9 +2,9 @@ services:
   - type: web
     name: it-support-backend
     env: node
-    rootDirectory: backend
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && npm run start
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm run start
     plan: free
     envVars:
       - key: NODE_VERSION
