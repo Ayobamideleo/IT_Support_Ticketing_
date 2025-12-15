@@ -17,6 +17,9 @@ import { Op } from "sequelize";
 
 dotenv.config();
 
+// Enable test routes only when explicitly allowed
+const ENABLE_TEST_ROUTES = process.env.ENABLE_TEST_ROUTES === "true";
+
 // Global error handlers
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
@@ -129,6 +132,25 @@ app.get('/api/health', async (req, res) => {
     return res.status(500).json({ status: 'error', db: 'disconnected' });
   }
 });
+
+if (ENABLE_TEST_ROUTES) {
+  app.get("/api/test", async (req, res) => {
+    try {
+      await sequelize.authenticate();
+      res.json({
+        status: "ok",
+        db: "connected",
+        env: process.env.NODE_ENV || "development"
+      });
+    } catch (err) {
+      console.error("DB test failed:", err);
+      res.status(500).json({
+        status: "error",
+        message: "Database connection failed"
+      });
+    }
+  });
+}
 
 // route registration
 app.use("/api/auth", authLimiter, authRoutes);
