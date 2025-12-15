@@ -58,7 +58,7 @@ Deploying on free tiers keeps the stack accessible for demos while avoiding manu
 - **Render YAML:** The repo includes `render.yaml` with `rootDir: backend`, `buildCommand: npm install`, `startCommand: npm run start`, and `NODE_VERSION=20`. Make sure the service uses the blueprint (or set Root Directory to `backend` in the dashboard and clear the build cache before redeploying).
 - Create a new Node.js web service and point it at the `backend` folder. Use `npm install` for install and `npm run start` (or `node server.js`) for the start command. Render/Railway set `PORT` automatically—do **not** hardcode it.
 - Configure environment variables:
-  - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` (if `DB_HOST` is not set, the backend will fallback to in-memory SQLite)
+  - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` (on Render, `DB_HOST` must be your managed MySQL host; if it's missing or set to `localhost`/`127.0.0.1`, the backend will fallback to in-memory SQLite)
   - `JWT_SECRET` (generate a strong value)
   - Optional: `NODE_ENV=production`
 - Run the migrations once (`npm run migrate:umzug`) by triggering a shell/one-off job in the hosting dashboard.
