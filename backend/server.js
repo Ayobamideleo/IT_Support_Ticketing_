@@ -77,7 +77,7 @@ sequelize
   .sync({ force: FORCE_SYNC })
   .then(() => {
   const PORT = process.env.PORT || 5000;
-  const HOST = process.env.HOST || "127.0.0.1"; // default to loopback for local usage
+  const HOST = process.env.HOST || "0.0.0.0"; // bind to all interfaces so PaaS routers can reach us
 
     if (!process.env.JWT_SECRET) {
       console.warn("WARNING: JWT_SECRET is not set. Tokens will not be secure. Set a strong JWT_SECRET in production.");
