@@ -7,7 +7,9 @@ dotenv.config();
 // This makes it convenient to run the app locally for smoke tests without
 // requiring a MySQL server. In production, provide DB_NAME/DB_USER/DB_PASS/DB_HOST.
 let sequelize;
-if (process.env.DB_NAME && process.env.DB_USER) {
+const hasMySqlEnv = Boolean(process.env.DB_NAME && process.env.DB_USER && process.env.DB_HOST);
+
+if (hasMySqlEnv) {
   sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
@@ -19,7 +21,9 @@ if (process.env.DB_NAME && process.env.DB_USER) {
     }
   );
 } else {
-  console.warn("DB env vars not set — using in-memory SQLite for development/smoke tests.");
+  console.warn(
+    "DB env vars not set (need DB_NAME, DB_USER, DB_HOST) — using in-memory SQLite for development/smoke tests."
+  );
   sequelize = new Sequelize({ dialect: 'sqlite', storage: ':memory:', logging: false });
 }
 
