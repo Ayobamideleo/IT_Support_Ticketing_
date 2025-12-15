@@ -20,7 +20,8 @@ let sequelize;
 
 // Preferred on PaaS (Render, Railway, etc.)
 // Example: mysql://user:pass@host:3306/dbname
-const databaseUrl = pickFirstString(process.env.DATABASE_URL, process.env.DB_URL);
+// Note: Railway commonly exposes MYSQL_URL.
+const databaseUrl = pickFirstString(process.env.DATABASE_URL, process.env.DB_URL, process.env.MYSQL_URL);
 
 const dbHost = pickFirstString(process.env.DB_HOST);
 const isLocalHost = dbHost === 'localhost' || dbHost === '127.0.0.1' || dbHost === '::1' || dbHost === '0.0.0.0';
@@ -49,12 +50,14 @@ const sslDialectOptions = useDbSsl
   : undefined;
 
 if (databaseUrl) {
+  console.info('[db] Using DATABASE_URL/DB_URL/MYSQL_URL connection string');
   sequelize = new Sequelize(databaseUrl, {
     ...(Number.isFinite(dbPort) ? { port: dbPort } : {}),
     dialectOptions: sslDialectOptions,
     logging: false,
   });
 } else if (hasMySqlEnv) {
+  console.info(`[db] Using DB_* env vars (host='${dbHost}', user='${dbUser}', db='${dbName}')`);
   if (isProduction && dbUser.toLowerCase() === 'root') {
     console.warn(
       "DB_USER is set to 'root' in production. Many managed MySQL providers block remote root access; use a dedicated DB user with privileges instead."
@@ -69,9 +72,11 @@ if (databaseUrl) {
     logging: false,
   });
 } else {
+  console.info('[db] Using in-memory SQLite (no valid MySQL env found)');
   if (
     process.env.DATABASE_URL ||
     process.env.DB_URL ||
+    process.env.MYSQL_URL ||
     process.env.DB_NAME ||
     process.env.DB_USER ||
     process.env.DB_USERNAME ||
