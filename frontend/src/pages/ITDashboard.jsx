@@ -93,6 +93,7 @@ export default function ITDashboard() {
     : tickets
 
   const totalPages = Math.ceil(pagination.total / pagination.limit)
+  const rowStart = (pagination.page - 1) * pagination.limit
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
@@ -241,7 +242,7 @@ export default function ITDashboard() {
             <table className="min-w-full divide-y divide-red-500/20">
               <thead className="bg-gradient-to-r from-red-950 to-gray-900">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">No.</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Title</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Priority</th>
@@ -258,13 +259,13 @@ export default function ITDashboard() {
                     <td colSpan="9" className="px-6 py-4 text-center text-gray-400">No tickets found</td>
                   </tr>
                 ) : (
-                  displayTickets.map(ticket => (
+                  displayTickets.map((ticket, idx) => (
                     <tr 
                       key={ticket.id} 
                       className="hover:bg-gradient-to-r hover:from-red-950/30 hover:to-gray-800/30 cursor-pointer transition-all duration-300 border-b border-red-500/5"
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-400">#{ticket.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-400">{rowStart + idx + 1}</td>
                       <td className="px-6 py-4 text-sm text-gray-200 max-w-xs truncate">{ticket.title}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={ticket.status} />

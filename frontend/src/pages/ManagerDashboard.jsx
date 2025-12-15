@@ -97,6 +97,11 @@ export default function ManagerDashboard() {
     setPage(1)
   }
 
+  const handleStatusCardClick = (statusValue) => {
+    setFilters(f => ({ ...f, status: statusValue }))
+    setPage(1)
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -316,7 +321,13 @@ export default function ManagerDashboard() {
         {/* Stats Overview Cards - Red/Black Theme */}
         {ticketStats && (
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
-            <div className="relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-red-500/10 hover:shadow-red-500/30 transition-all duration-300 transform hover:scale-105 border border-red-500/20">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => handleStatusCardClick('')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatusCardClick('') }}
+              className={`relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-red-500/10 hover:shadow-red-500/30 transition-all duration-300 transform hover:scale-105 border ${filters.status === '' ? 'border-red-400/60 ring-2 ring-red-500/40' : 'border-red-500/20'} cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-400/70`}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative p-6 text-center">
                 <div className="text-sm font-medium text-gray-400 mb-2">Total Tickets</div>
@@ -335,7 +346,13 @@ export default function ManagerDashboard() {
             </div>
             )}
             
-            <div className="relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-green-500/10 hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105 border border-green-500/20">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => handleStatusCardClick('open')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatusCardClick('open') }}
+              className={`relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-green-500/10 hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105 border ${filters.status === 'open' ? 'border-green-400/60 ring-2 ring-green-400/40' : 'border-green-500/20'} cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-300/70`}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative p-6 text-center">
                 <div className="text-sm font-medium text-gray-400 mb-2">Open</div>
@@ -344,7 +361,13 @@ export default function ManagerDashboard() {
               </div>
             </div>
             
-            <div className="relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-purple-500/10 hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 border border-purple-500/20">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => handleStatusCardClick('in_progress')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatusCardClick('in_progress') }}
+              className={`relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-purple-500/10 hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 border ${filters.status === 'in_progress' ? 'border-purple-400/60 ring-2 ring-purple-400/40' : 'border-purple-500/20'} cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-300/70`}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative p-6 text-center">
                 <div className="text-sm font-medium text-gray-400 mb-2">In Progress</div>
@@ -353,7 +376,13 @@ export default function ManagerDashboard() {
               </div>
             </div>
             
-            <div className="relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-teal-500/10 hover:shadow-teal-500/30 transition-all duration-300 transform hover:scale-105 border border-teal-500/20">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => handleStatusCardClick('resolved')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatusCardClick('resolved') }}
+              className={`relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-teal-500/10 hover:shadow-teal-500/30 transition-all duration-300 transform hover:scale-105 border ${filters.status === 'resolved' ? 'border-teal-300/70 ring-2 ring-teal-300/40' : 'border-teal-500/20'} cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-200/70`}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative p-6 text-center">
                 <div className="text-sm font-medium text-gray-400 mb-2">Resolved</div>
@@ -362,7 +391,13 @@ export default function ManagerDashboard() {
               </div>
             </div>
             
-            <div className="relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-gray-500/10 hover:shadow-gray-500/30 transition-all duration-300 transform hover:scale-105 border border-gray-500/20">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => handleStatusCardClick('closed')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatusCardClick('closed') }}
+              className={`relative group overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-lg shadow-gray-500/10 hover:shadow-gray-500/30 transition-all duration-300 transform hover:scale-105 border ${filters.status === 'closed' ? 'border-gray-200/70 ring-2 ring-gray-200/40' : 'border-gray-500/20'} cursor-pointer focus:outline-none focus:ring-2 focus:ring-gray-200/70`}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/10 to-red-600/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
               <div className="relative p-6 text-center">
                 <div className="text-sm font-medium text-gray-400 mb-2">Closed</div>

@@ -89,6 +89,7 @@ export default function ITUserAccounts() {
   };
 
   const totalPages = Math.ceil(pagination.total / pagination.limit);
+  const rowStart = (pagination.page - 1) * pagination.limit;
 
   return (
     <div>
@@ -146,7 +147,7 @@ export default function ITUserAccounts() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No.</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -161,9 +162,9 @@ export default function ITUserAccounts() {
                     <td colSpan="7" className="px-6 py-4 text-center text-gray-500">No users found</td>
                   </tr>
                 ) : (
-                  users.map(u => (
+                  users.map((u, idx) => (
                     <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{u.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{rowStart + idx + 1}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{u.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{u.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap">

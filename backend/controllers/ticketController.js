@@ -4,6 +4,9 @@ import TicketComment from "../models/TicketComment.js";
 import { sendGeneric, sendBulkGeneric, composeEmailHtml } from "../services/emailService.js";
 import { Op } from "sequelize";
 
+// SLA policy: maximum expected resolution window is 48 hours
+const MAX_SLA_HOURS = 48;
+
 const formatDateTime = (value) => {
   if (!value) return "n/a";
   const date = value instanceof Date ? value : new Date(value);
@@ -26,6 +29,16 @@ export const createTicket = async (req, res) => {
   try {
     const { title, description, priority, issueType, slaCategory, dueAt, department } = req.body;
 
+    const now = new Date();
+    const maxAllowedDue = new Date(now.getTime() + MAX_SLA_HOURS * 60 * 60 * 1000);
+    let enforcedDueAt = maxAllowedDue;
+    if (dueAt) {
+      const parsedDue = new Date(dueAt);
+      if (!Number.isNaN(parsedDue.getTime())) {
+        enforcedDueAt = parsedDue > maxAllowedDue ? maxAllowedDue : parsedDue;
+      }
+    }
+
     const ticket = await Ticket.create({
       title,
       description,
@@ -33,7 +46,7 @@ export const createTicket = async (req, res) => {
       issueType: issueType || null,
       userId: req.user.id,
       slaCategory: slaCategory || null,
-      dueAt: dueAt ? new Date(dueAt) : null,
+      dueAt: enforcedDueAt,
       department: department || null,
     });
 

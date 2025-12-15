@@ -21,7 +21,11 @@ html, body, #root {
 body{
   /* Global font set to Georgia site-wide */
   font-family: Georgia, serif;
-  background-color: var(--surface);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(183,28,28,0.12), transparent 32%),
+    radial-gradient(circle at 80% 10%, rgba(211,47,47,0.14), transparent 30%),
+    linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background-attachment: fixed;
   color: var(--black);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;

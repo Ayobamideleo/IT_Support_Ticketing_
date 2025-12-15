@@ -144,108 +144,160 @@ export default function ManageAccounts() {
 
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
+  const formatDate = (value) => {
+    if (!value) return 'Never';
+    try {
+      return new Date(value).toLocaleString();
+    } catch {
+      return 'Never';
+    }
+  };
+
+  const handleStatCardClick = (statusValue) => {
+    setFilters(prev => ({ ...prev, status: statusValue }));
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const pageBgStyle = {
+    backgroundImage: `
+      linear-gradient(135deg, rgba(16,185,129,0.14), rgba(14,165,233,0.14)),
+      radial-gradient(circle at 18% 20%, rgba(16,185,129,0.20), transparent 38%),
+      radial-gradient(circle at 82% 8%, rgba(14,165,233,0.24), transparent 34%)
+    `
+  };
+
+  const rowStart = (pagination.page - 1) * pagination.limit;
+
   return (
-    <div>
-      <div className="mb-6 flex justify-between items-center">
-        <div>
-          <div className="mb-2"><BackButton fallback="/manager" /></div>
-          <h1 className="text-2xl font-bold">Manage Accounts</h1>
-          <p className="text-gray-600">Create and manage user accounts and roles</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={exportToCSV}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Export CSV
-          </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Create Account
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen pb-12" style={pageBgStyle}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 mb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="mb-2"><BackButton fallback="/manager" /></div>
+              <h1 className="text-3xl font-bold text-slate-900">Manage Accounts</h1>
+              <p className="text-slate-600">Create, update, and govern access in one place.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={exportToCSV}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 shadow-sm flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 shadow-sm flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Account
+              </button>
+            </div>
+          </div>
 
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded shadow-sm">
+              {error}
+            </div>
+          )}
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <div className="text-sm text-gray-600 mb-1">Total Users</div>
-            <div className="text-3xl font-bold">{stats.total}</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <div className="text-sm text-gray-600 mb-1">Active</div>
-            <div className="text-3xl font-bold text-green-600">{stats.active}</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <div className="text-sm text-gray-600 mb-1">Inactive</div>
-            <div className="text-3xl font-bold text-gray-600">{stats.inactive}</div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4 text-center">
-            <div className="text-sm text-gray-600 mb-1">Verified</div>
-            <div className="text-3xl font-bold text-blue-600">
-              {stats.total > 0 ? `${Math.round((stats.verified / stats.total) * 100)}%` : '0%'}
+          {stats && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => handleStatCardClick('')}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatCardClick(''); }}
+                className={`bg-white rounded-xl shadow-sm p-4 border ${filters.status === '' ? 'border-emerald-200 ring-2 ring-emerald-100' : 'border-slate-100'} cursor-pointer transition hover:shadow-md`}
+              >
+                <div className="text-sm text-slate-500">Total Users</div>
+                <div className="text-3xl font-bold text-slate-900">{stats.total}</div>
+              </div>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => handleStatCardClick('active')}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatCardClick('active'); }}
+                className={`bg-white rounded-xl shadow-sm p-4 border ${filters.status === 'active' ? 'border-emerald-200 ring-2 ring-emerald-100' : 'border-slate-100'} cursor-pointer transition hover:shadow-md`}
+              >
+                <div className="text-sm text-slate-500">Active</div>
+                <div className="text-3xl font-bold text-emerald-600">{stats.active}</div>
+              </div>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => handleStatCardClick('inactive')}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleStatCardClick('inactive'); }}
+                className={`bg-white rounded-xl shadow-sm p-4 border ${filters.status === 'inactive' ? 'border-amber-200 ring-2 ring-amber-100' : 'border-slate-100'} cursor-pointer transition hover:shadow-md`}
+              >
+                <div className="text-sm text-slate-500">Inactive</div>
+                <div className="text-3xl font-bold text-amber-600">{stats.inactive}</div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm p-4 border border-slate-100">
+                <div className="text-sm text-slate-500">Verified %</div>
+                <div className="text-3xl font-bold text-blue-600">
+                  {stats.total > 0 ? `${Math.round((stats.verified / stats.total) * 100)}%` : '0%'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={filters.q}
+                onChange={(e) => handleFilterChange('q', e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select
+                value={filters.role}
+                onChange={(e) => handleFilterChange('role', e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Roles</option>
+                <option value="employee">Employee</option>
+                <option value="it_staff">IT Staff</option>
+                <option value="manager">Manager</option>
+              </select>
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+              <button
+                onClick={() => {
+                  setFilters({ role: '', status: '', q: '' });
+                  setPagination(prev => ({ ...prev, page: 1 }));
+                }}
+                className="px-3 py-2 border border-slate-200 rounded-md text-slate-600 hover:bg-slate-50"
+              >
+                Clear filters
+              </button>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={filters.q}
-            onChange={(e) => handleFilterChange('q', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <select
-            value={filters.role}
-            onChange={(e) => handleFilterChange('role', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Roles</option>
-            <option value="employee">Employee</option>
-            <option value="it_staff">IT Staff</option>
-            <option value="manager">Manager</option>
-          </select>
-          <select
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Users Table */}
-      {loading ? (
-        <div className="text-center py-8">Loading...</div>
-      ) : (
-        <>
-          <div className="bg-white rounded-lg shadow overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+        {/* Users Table */}
+        {loading ? (
+          <div className="text-center py-8 text-slate-500">Loading...</div>
+        ) : (
+          <>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No.</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
@@ -255,15 +307,15 @@ export default function ManageAccounts() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-slate-100">
                 {users.length === 0 ? (
                   <tr>
                     <td colSpan="8" className="px-6 py-4 text-center text-gray-500">No users found</td>
                   </tr>
                 ) : (
-                  users.map(u => (
-                    <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{u.id}</td>
+                  users.map((u, idx) => (
+                    <tr key={u.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{rowStart + idx + 1}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{u.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{u.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -319,7 +371,7 @@ export default function ManageAccounts() {
                         ) }
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Never'}
+                        {formatDate(u.lastLoginAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex gap-2">
@@ -350,40 +402,40 @@ export default function ManageAccounts() {
             </table>
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4 flex justify-between items-center">
-              <div className="text-sm text-gray-700">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div className="text-sm text-slate-700">
+                  Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} users
+                </div>
+                <div className="flex gap-2 items-center">
+                  <button
+                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                    disabled={pagination.page === 1}
+                    className="px-4 py-2 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  <span className="px-4 py-2 bg-white border border-slate-200 rounded">
+                    Page {pagination.page} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                    disabled={pagination.page >= totalPages}
+                    className="px-4 py-2 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                  disabled={pagination.page === 1}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="px-4 py-2 bg-white border border-gray-300 rounded">
-                  Page {pagination.page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                  disabled={pagination.page >= totalPages}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
 
-      {/* Create User Modal */}
+        {/* Create User Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg">
             <h2 className="text-xl font-bold mb-4">Create New Account</h2>
             <form onSubmit={handleCreateUser}>
               <div className="space-y-4">
@@ -468,10 +520,10 @@ export default function ManageAccounts() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+        {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-lg">
             <h2 className="text-xl font-bold mb-4 text-red-600">Confirm Delete</h2>
             <p className="mb-6">
               Are you sure you want to delete <strong>{showDeleteModal.name}</strong> ({showDeleteModal.email})?
@@ -494,6 +546,7 @@ export default function ManageAccounts() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

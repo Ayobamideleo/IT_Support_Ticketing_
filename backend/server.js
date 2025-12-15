@@ -9,6 +9,11 @@ import userRoutes from "./routes/userRoutes.js";
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 import rateLimit from 'express-rate-limit';
+import Ticket from "./models/Ticket.js";
+import User from "./models/User.js";
+import TicketComment from "./models/TicketComment.js";
+import { sendBulkGeneric, composeEmailHtml } from "./services/emailService.js";
+import { Op } from "sequelize";
 
 dotenv.config();
 
@@ -28,6 +33,72 @@ app.use(pinoHttp({ logger }));
 app.use(cors());
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
+
+// --- SLA reminder job: notify IT staff & managers if no response after 30 minutes ---
+const startSlaReminderJob = () => {
+  const remindedIds = new Set();
+  const THIRTY_MIN = 30 * 60 * 1000;
+  const POLL_MS = 5 * 60 * 1000; // run every 5 minutes
+
+  setInterval(async () => {
+    try {
+      const cutoff = new Date(Date.now() - THIRTY_MIN);
+      const candidates = await Ticket.findAll({
+        where: {
+          createdAt: { [Op.lte]: cutoff },
+          status: { [Op.in]: ['open', 'assigned', 'in_progress'] },
+        },
+        include: [
+          { model: User, as: 'creator', attributes: ['name', 'email'] },
+          { model: User, as: 'assignee', attributes: ['name', 'email'] },
+          { model: TicketComment, as: 'comments', attributes: ['id'], required: false },
+        ],
+        limit: 100,
+      });
+
+      const staleTickets = candidates.filter(t => (t.comments?.length || 0) === 0 && !remindedIds.has(t.id));
+      if (!staleTickets.length) return;
+
+      const recipients = await User.findAll({
+        where: { role: { [Op.in]: ['it_staff', 'manager'] } },
+        attributes: ['email', 'name'],
+      });
+      const emails = recipients.map(r => r.email).filter(Boolean);
+      if (!emails.length) return;
+
+      for (const ticket of staleTickets) {
+        const subject = `Reminder: Ticket #${ticket.id} pending response`;
+        const detailRows = [
+          ['Title', ticket.title],
+          ['Priority', ticket.priority],
+          ['Issue Type', ticket.issueType || 'N/A'],
+          ['Department', ticket.department || 'N/A'],
+          ['Created At', ticket.createdAt?.toLocaleString() || 'N/A'],
+          ['Reporter', ticket.creator?.name || 'Unknown'],
+        ];
+        const textLines = [
+          'Hello team,',
+          `Ticket #${ticket.id} has been awaiting an initial response for 30+ minutes.`,
+          '',
+          ...detailRows.map(([k, v]) => `${k}: ${v}`),
+          '',
+          'Please review and respond in the WYZE IT Support dashboard.',
+        ];
+        const html = composeEmailHtml({
+          title: subject,
+          intro: ['Ticket has been waiting 30+ minutes without a response.'],
+          details: detailRows,
+          outro: ['Please triage and reply in the WYZE IT Support dashboard.'],
+        });
+
+        await sendBulkGeneric(emails, subject, { text: textLines.join('\n'), html });
+        remindedIds.add(ticket.id);
+      }
+    } catch (err) {
+      logger.error({ err }, 'SLA reminder job failed');
+    }
+  }, POLL_MS);
+};
 
 // Basic rate limiting (adjust windowMs & max for production)
 const authLimiter = rateLimit({
@@ -88,6 +159,7 @@ sequelize
     const server = app.listen(PORT, HOST, () => {
       logger.info({ host: HOST, port: PORT }, 'Server started');
       console.log(`✅ Server listening on http://localhost:${PORT}`);
+      startSlaReminderJob();
     });
     server.on('error', (err) => {
       logger.error({ err }, 'Server listen error');
