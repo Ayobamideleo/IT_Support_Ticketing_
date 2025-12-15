@@ -11,6 +11,13 @@ const dbHostRaw = process.env.DB_HOST;
 const dbHost = typeof dbHostRaw === 'string' ? dbHostRaw.trim() : '';
 const isLocalHost = dbHost === 'localhost' || dbHost === '127.0.0.1' || dbHost === '::1' || dbHost === '0.0.0.0';
 
+const dbPortRaw = process.env.DB_PORT;
+const dbPort = typeof dbPortRaw === 'string' && dbPortRaw.trim() ? Number(dbPortRaw.trim()) : undefined;
+
+const dbSslRaw = process.env.DB_SSL;
+const dbSsl = typeof dbSslRaw === 'string' ? dbSslRaw.trim().toLowerCase() : '';
+const useDbSsl = dbSsl === 'true' || dbSsl === '1' || dbSsl === 'yes';
+
 const hasMySqlEnv = Boolean(process.env.DB_NAME && process.env.DB_USER && dbHost && !isLocalHost);
 
 if (hasMySqlEnv) {
@@ -20,7 +27,16 @@ if (hasMySqlEnv) {
     process.env.DB_PASS,
     {
       host: dbHost,
+      ...(Number.isFinite(dbPort) ? { port: dbPort } : {}),
       dialect: "mysql",
+      dialectOptions: useDbSsl
+        ? {
+            ssl: {
+              require: true,
+              rejectUnauthorized: false,
+            },
+          }
+        : undefined,
       logging: false,
     }
   );

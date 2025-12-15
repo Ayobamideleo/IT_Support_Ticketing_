@@ -54,11 +54,14 @@ Deploying on free tiers keeps the stack accessible for demos while avoiding manu
 - Trigger the first deploy. Vercel auto-builds on every push to the selected branch.
 
 ### Backend → Render / Railway
-- Provision a MySQL instance (Render, Railway, Neon + Prisma adapter, or PlanetScale). Capture `DB_HOST`, `DB_USER`, `DB_PASS`, and `DB_NAME`.
+- Provision a MySQL instance (Railway, PlanetScale, Aiven, DigitalOcean Managed MySQL, AWS RDS, etc.). Capture `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` (and sometimes `DB_PORT` + `DB_SSL`).
 - **Render YAML:** The repo includes `render.yaml` with `rootDir: backend`, `buildCommand: npm install`, `startCommand: npm run start`, and `NODE_VERSION=20`. Make sure the service uses the blueprint (or set Root Directory to `backend` in the dashboard and clear the build cache before redeploying).
 - Create a new Node.js web service and point it at the `backend` folder. Use `npm install` for install and `npm run start` (or `node server.js`) for the start command. Render/Railway set `PORT` automatically—do **not** hardcode it.
 - Configure environment variables:
-  - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME` (on Render, `DB_HOST` must be your managed MySQL host; if it's missing or set to `localhost`/`127.0.0.1`, the backend will fallback to in-memory SQLite)
+  - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`
+  - Optional: `DB_PORT` (if your provider doesn’t use 3306)
+  - Optional: `DB_SSL=true` (if your provider requires TLS)
+  - Note: if `DB_HOST` is missing or set to `localhost`/`127.0.0.1`, the backend will fallback to in-memory SQLite
   - `JWT_SECRET` (generate a strong value)
   - Optional: `NODE_ENV=production`
 - Run the migrations once (`npm run migrate:umzug`) by triggering a shell/one-off job in the hosting dashboard.
